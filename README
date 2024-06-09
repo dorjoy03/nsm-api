@@ -1,0 +1,20 @@
+Unit tests written by testing real NSM (Nitro Secure Module) device in nitro
+enclave VM in AWS. This is useful for cross checking NSM behavior in QEMU when
+running the 'nitro-enclave' machine type. Here are the steps:
+
+1. Build a docker image using the Dockerfile
+2. Use nitro-cli to build an EIF file
+3. Take note of the measurements from nitro-cli's output
+4. Run a real nitro enclave VM in AWS using the EIF file in debug mode
+5. Attach console to the nitro VM from the parent EC2 VM
+6. Verify from the console output that the tests pass
+7. Now test in QEMU by running the nitro-enclave machine type that the measurements
+   match the measurements you took note of earlier and that the tests pass as well.
+
+Note: When running nitro enclave VM in AWS in debug mode most of the measurements
+are zero so they won't match QEMU's output when all the PCRs are printed. That is
+why they need to be matched by taking note of the measurements from the nitro-cli
+output when building the EIF file.
+
+
+
