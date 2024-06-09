@@ -1,0 +1,14 @@
+Generate static binary for cross checking AWS NSM device implementation. Build
+the docker image and then mount a local directory with the C file when running
+the container (add other requests modifying the C file for testing as necessary).
+Inside the container, statically build the source file so that you can use it
+in initramfs.
+
+1. docker image build . -t debian-rust
+2. docker run -it -v /path-to-nsm.c-dicrectory:/home/my-nsm debian-rust
+    Inside container:
+    # cd /home/my-nsm
+    # gcc nsm.c -o nsm -static -lnsm -lm
+
+Then you can use the "nsm" static binary that you will find in the directory
+you mounted in an initramfs and run it to test NSM device implementation.
