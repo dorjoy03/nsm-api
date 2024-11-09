@@ -110,7 +110,7 @@ class TestInitialNSMState(unittest.TestCase):
     def tearDown(self):
         self.fh.close()
 
-    def test_001describe_nsm_initial_state(self):
+    def test_001_describe_nsm_initial_state(self):
         rsp = describe_nsm(self.fh)
         self.assertTrue(isinstance(rsp, dict))
         self.assertEqual(list(rsp.keys()), ['DescribeNSM'])
@@ -126,7 +126,7 @@ class TestInitialNSMState(unittest.TestCase):
         self.assertEqual(obj.get('version_minor'), 0)
         self.assertEqual(obj.get('version_patch'), 0)
 
-    def test_002pcrs_initial_state(self):
+    def test_002_pcrs_initial_state(self):
         # First 16 PCRs are reserved for nitro enclave and some PCRs contain various
         # measurements. But Others from [16, 31] are not locked and start with zero.
         for i in range(0, 32):
@@ -682,6 +682,21 @@ class TestNSMOperations(unittest.TestCase):
         self.assertEqual(list(obj.keys()), ['data'])
         self.assertEqual(obj.get('data').hex(), 'ffbb97ea3c03451254d8059cbec835359939342226cb7b672a4fba3f90c3bd343bcbd3a1ab06988ce9cd139ef1709e8e')
 
+        # extend again with string data
+        buf = cbor2.dumps({
+            'ExtendPCR': {
+                'index': 17,
+                'data': 'hello world',
+            }
+        })
+        rsp = send_nsm_req(self.fh, buf)
+        self.assertTrue(isinstance(rsp, dict))
+        self.assertEqual(list(rsp.keys()), ['ExtendPCR'])
+        obj = rsp.get('ExtendPCR')
+        self.assertTrue(isinstance(obj, dict))
+        self.assertEqual(list(obj.keys()), ['data'])
+        self.assertEqual(obj.get('data').hex(), 'f79d5c4d198d4d050ae118f0dbb9f24df932300db1c5c85ed85ddf3eacc2dc98585f0e38c17755defb6dfe130f1a126d')
+
     def test_004_lock_pcr(self):
         rsp = lock_pcr(self.fh, 16)
         self.assertEqual(rsp, 'LockPCR')
@@ -777,7 +792,7 @@ class TestNSMOperations(unittest.TestCase):
         pcrs = payload.get('pcrs')
         self.assertEqual(set(pcrs.keys()), set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]))
         self.assertEqual(pcrs.get(16).hex(), '022db9572e340c6fe4ae1ea55fc665226932209b42dd8c42556000e913aea3ffec9e55c2cfa7efcc5dc52b0ebf03eb5b')
-        self.assertEqual(pcrs.get(17).hex(), 'ffbb97ea3c03451254d8059cbec835359939342226cb7b672a4fba3f90c3bd343bcbd3a1ab06988ce9cd139ef1709e8e')
+        self.assertEqual(pcrs.get(17).hex(), 'f79d5c4d198d4d050ae118f0dbb9f24df932300db1c5c85ed85ddf3eacc2dc98585f0e38c17755defb6dfe130f1a126d')
         self.assertEqual(pcrs.get(18), bytes(48))
         self.assertEqual(pcrs.get(19), bytes(48))
         self.assertEqual(payload.get('public_key'), public_key)
